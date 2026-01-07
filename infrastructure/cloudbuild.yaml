@@ -1,0 +1,34 @@
+# Deploy to Cloud Run
+# This service handles the Next.js application with NextAuth
+
+steps:
+# Build the container image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/nextjs-app', '.']
+  id: 'Build'
+
+# Push the container image to Container Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/nextjs-app']
+  id: 'Push'
+
+# Deploy container image to Cloud Run
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+  - 'run'
+  - 'deploy'
+  - 'nextjs-app'
+  - '--image'
+  - 'gcr.io/$PROJECT_ID/nextjs-app'
+  - '--region'
+  - 'us-central1'
+  - '--platform'
+  - 'managed'
+  - '--allow-unauthenticated'
+  - '--set-env-vars'
+  - 'NEXTAUTH_URL=https://your-service-name-xyz.a.run.app,NEXTAUTH_SECRET=your-secret,NODE_ENV=production'
+  id: 'Deploy'
+
+images:
+- 'gcr.io/$PROJECT_ID/nextjs-app'
